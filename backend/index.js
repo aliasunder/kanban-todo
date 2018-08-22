@@ -27,9 +27,7 @@ const typeDefs = gql`
       id: ID!
    }
    type Query { 
-      todos: [ToDo] 
-      filterByStatus(status: Boolean): [ToDo]
-      filterById(id: ID): [ToDo]
+      todos(filter: ToDoInput): [ToDo]
       todo(id: ID!) : ToDo
    }
    input ToDoInput {
@@ -37,6 +35,7 @@ const typeDefs = gql`
       description: String, 
       status: Boolean = false, 
       due_date: String,
+      id: ID
    }
    type Mutation {
       createNewToDo(input: ToDoInput) : ToDo
@@ -48,21 +47,29 @@ const typeDefs = gql`
 
 const resolvers = {
    Query: {
-      todos: async () => {
-         const todos = await knex('todos').select()
-         return todos;
-      },
-      filterByStatus: async (_, { status }) => {
-         console.log(status)
-         const filtered = await knex('todos')
-            .where('status', '=', status)
-         return filtered;
-      },
-      filterById: async (_, { id }) => {
-         console.log(id)
-         const filtered = await knex('todos')
-            .where('id', '=', id)
-         return filtered;
+      todos: async (_, { filter }) => {
+         if (!filter){
+            const todos = await knex('todos').select()
+            return todos;
+         }
+         else {
+            const filteredtodos = await knex('todos')
+            .where((qb) => {
+               if (filter.status){
+                  qb.where('status', '=', filter.status)
+               }
+               if (filter.description){
+                  qb.orWhere('description', '=', filter.description)
+               }
+               if (filter.id){
+                  qb.orWhere('id', '=', filter.id)
+               }
+               if (filter.title){
+                  qb.orWhere('title', '=', filter.title)
+               }
+            })
+            return filteredtodos;
+         }
       },
       todo: async () => {
          const todo = await knex.select('id').from('todos')
