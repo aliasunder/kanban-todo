@@ -41,6 +41,7 @@ const typeDefs = gql`
    type Mutation {
       createNewToDo(input: ToDoInput) : ToDo
       updateToDo(id: ID!, input: ToDoInput) : ToDo
+      deleteToDo(id: ID!) : ToDo
    }
 `
 
@@ -75,13 +76,18 @@ const resolvers = {
          return newToDo;
       },
       updateToDo: async (_, { id, input }) => {
-         console.log(id);
-         console.log(input)
          const [updatedToDo] = await knex('todos')
             .where('id', '=', id)
             .returning(['id', 'title', 'description', 'status', 'due_date'])
             .update(input)
          return updatedToDo;
+      },
+      deleteToDo: async (_, { id }) => {
+         const [deletedToDo] = await knex('todos')
+            .where('id', id)
+            .returning(['id', 'title', 'description', 'status', 'due_date'])
+            .del()
+         return deletedToDo;
       }
    }
 };
