@@ -5,10 +5,10 @@ const { createServer } = require('http');
 const knex = require('knex')({
 	client: 'postgres',
 	connection: {
-		host: '127.0.0.1',
-		user: 'postgres',
-		password: 'postgres',
-		database: 'kanbantodo',
+		host: 'ec2-54-225-92-1.compute-1.amazonaws.com',
+		user: 'kqqzzzcnwnftca',
+		password: 'c43ae0b8321d06b10cadf75d237fda0c54422109ad02c4cb3c79f62bc56c99c3',
+		database: 'dcbnurgqm04k6r',
 		charset: 'utf8'
 	}
 });
