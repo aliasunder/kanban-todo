@@ -49,6 +49,9 @@ const typeDefs = gql`
 
 const resolvers = {
    Query: {
+      // resolver to find todos. If there is no filter, all todos are returned
+      // if there is a filter, the todos that match the filter object property
+      // will be returned. Results can only be filtered by one property
       todos: async (_, { filter }) => {
          if (!filter){
             const todos = await knex('todos').select()
@@ -79,18 +82,21 @@ const resolvers = {
             return filteredtodos;
          }
       },
+      // return a single todo by id
       todo: async () => {
          const todo = await knex.select('id').from('todos')
          return todo;
       }
    },
    Mutation: {
+      // create a new tidi and return results of newToDo
       createNewToDo: async (_, { input }) => {
       const [newToDo]= await knex('todos')
          .returning(['id', 'title', 'description', 'status', 'due_date'])
          .insert(input)
          return newToDo;
       },
+      // find todo by id and update todo with included object properties
       updateToDo: async (_, { id, input }) => {
          const [updatedToDo] = await knex('todos')
             .where('id', '=', id)
@@ -98,6 +104,7 @@ const resolvers = {
             .update(input)
          return updatedToDo;
       },
+      // find todo by id and delete
       deleteToDo: async (_, { id }) => {
          const [deletedToDo] = await knex('todos')
             .where('id', id)
@@ -105,6 +112,8 @@ const resolvers = {
             .del()
          return deletedToDo;
       },
+      // find todos that match a filter object property and 
+      // delete those results. Results can only be filtered by one property
       deleteByFilter: async (_, { filter }) => {
          const [deletedToDos] = await knex('todos')
             .where((qb) => {
