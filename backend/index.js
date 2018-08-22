@@ -24,7 +24,8 @@ const typeDefs = gql`
       description: String!, 
       status: Boolean!, 
       due_date: String!,
-      id: ID!
+      id: ID!,
+      categories: [String]
    }
    type Query { 
       todos(filter: ToDoInput): [ToDo]
@@ -35,13 +36,14 @@ const typeDefs = gql`
       description: String, 
       status: Boolean = false, 
       due_date: String,
+      categories: [String]
       id: ID
    }
    type Mutation {
       createNewToDo(input: ToDoInput) : ToDo
       updateToDo(id: ID!, input: ToDoInput) : ToDo
       deleteToDo(id: ID!) : ToDo
-      deleteByStatus(status: Boolean!) : ToDo
+      deleteByFilter(filter: ToDoInput) : ToDo
    }
 `
 
@@ -56,16 +58,22 @@ const resolvers = {
             const filteredtodos = await knex('todos')
             .where((qb) => {
                if (filter.status){
-                  qb.where('status', '=', filter.status)
+                  qb.where('status', filter.status)
                }
                if (filter.description){
-                  qb.orWhere('description', '=', filter.description)
+                  qb.orWhere('description', filter.description)
                }
                if (filter.id){
-                  qb.orWhere('id', '=', filter.id)
+                  qb.orWhere('id',filter.id)
                }
                if (filter.title){
-                  qb.orWhere('title', '=', filter.title)
+                  qb.orWhere('title', filter.title)
+               }
+               if (filter.due_date){
+                  qb.orWhere('due_date', filter.due_date)
+               }
+               if (filter.categories){
+                  qb.orWhere('categories', filter.categories)
                }
             })
             return filteredtodos;
@@ -97,9 +105,22 @@ const resolvers = {
             .del()
          return deletedToDo;
       },
-      deleteByStatus: async (_, { status }) => {
+      deleteByFilter: async (_, { filter }) => {
          const [deletedToDos] = await knex('todos')
-            .where('status', status)
+            .where((qb) => {
+               if (filter.status){
+                  qb.where('status', filter.status)
+               }
+               if (filter.description){
+                  qb.orWhere('description', filter.description)
+               }
+               if (filter.id){
+                  qb.orWhere('id', filter.id)
+               }
+               if (filter.title){
+                  qb.orWhere('title', filter.title)
+               }
+            })
             .returning(['id', 'title', 'description', 'status', 'due_date'])
             .del()
          return deletedToDos;
