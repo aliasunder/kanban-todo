@@ -42,6 +42,7 @@ const typeDefs = gql`
       createNewToDo(input: ToDoInput) : ToDo
       updateToDo(id: ID!, input: ToDoInput) : ToDo
       deleteToDo(id: ID!) : ToDo
+      deleteByStatus(status: Boolean!) : ToDo
    }
 `
 
@@ -88,6 +89,13 @@ const resolvers = {
             .returning(['id', 'title', 'description', 'status', 'due_date'])
             .del()
          return deletedToDo;
+      },
+      deleteByStatus: async (_, { status }) => {
+         const [deletedToDos] = await knex('todos')
+            .where('status', status)
+            .returning(['id', 'title', 'description', 'status', 'due_date'])
+            .del()
+         return deletedToDos;
       }
    }
 };
