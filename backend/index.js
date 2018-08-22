@@ -33,10 +33,10 @@ const typeDefs = gql`
       todo(id: ID!) : ToDo
    }
    input ToDoInput {
-      title: String!, 
-      description: String!, 
-      status: Boolean! = false, 
-      due_date: String!,
+      title: String, 
+      description: String, 
+      status: Boolean = false, 
+      due_date: String,
    }
    type Mutation {
       createNewToDo(input: ToDoInput) : ToDo
@@ -75,9 +75,12 @@ const resolvers = {
          return newToDo;
       },
       updateToDo: async (_, { id, input }) => {
-         const updatedToDo = await database('todos')
+         console.log(id);
+         console.log(input)
+         const [updatedToDo] = await knex('todos')
             .where('id', '=', id)
-            .update({ input })
+            .returning(['id', 'title', 'description', 'status', 'due_date'])
+            .update(input)
          return updatedToDo;
       }
    }
