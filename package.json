@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "db:migrate": "knex migrate:latest"
+    "dev": "run.env nodemon index.js",
+    "db:migrate": "run.env knex migrate:latest"
   },
   "keywords": [],
   "author": "",
