@@ -1,7 +1,6 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { execute, subscribe } = require('graphql');
-const { createServer } = require('http');
 const knex = require('knex')({
 	client: 'postgres',
 	connection: {
@@ -137,7 +136,13 @@ const resolvers = {
    }
 };
 
-const server = new ApolloServer({ typeDefs, resolvers});
+const server = new ApolloServer({ 
+   typeDefs, 
+   resolvers, 
+   introspection: true,
+   playground: true
+});
+
 server.applyMiddleware({ app })
 
 app.listen({ port: PORT }, () => {
