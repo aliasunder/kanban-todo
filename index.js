@@ -39,10 +39,10 @@ const typeDefs = gql`
       id: ID
    }
    type Mutation {
-      createNewToDo(input: ToDoInput) : ToDo
-      updateToDo(id: ID!, input: ToDoInput) : ToDo
+      createNewToDo(input: ToDoInput!) : ToDo
+      updateToDo(id: ID!, input: ToDoInput!) : ToDo
       deleteToDo(id: ID!) : ToDo
-      deleteByFilter(filter: ToDoInput) : ToDo
+      deleteByFilter(filter: ToDoInput!) : ToDo
    }
 `
 
