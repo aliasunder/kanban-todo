@@ -1,6 +1,9 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { execute, subscribe } = require('graphql');
+const { PostgresPubSub } = require('graphql-postgres-subscriptions')
+const { createServer } = require('http');
+
 const knex = require('knex')({
 	client: 'postgres',
 	connection: {
@@ -14,8 +17,14 @@ const knex = require('knex')({
 const PORT = process.env.PORT || 3000
 const HOST = process.env.HOST || 'localhost'
 
-
-const app = express();
+const pubsub = new PostgresPubSub({
+   user: process.env.DBUSER,
+   host: process.env.PGHOST,
+   database: process.env.PGDATABASE,
+   password: process.env.PGPASSWORD,
+   port: process.env.PGPORT,
+   ssl: true
+ })
 
 const typeDefs = gql`
    type ToDo { 
@@ -43,6 +52,9 @@ const typeDefs = gql`
       updateToDo(id: ID!, input: ToDoInput!) : ToDo
       deleteToDo(id: ID!) : ToDo
       deleteByFilter(filter: ToDoInput!) : ToDo
+   }
+   type Subscription {
+      toDoAdded: ToDo
    }
 `
 
@@ -90,9 +102,12 @@ const resolvers = {
    Mutation: {
       // create a new tidi and return results of newToDo
       createNewToDo: async (_, { input }) => {
-      const [newToDo]= await knex('todos')
-         .returning(['id', 'title', 'description', 'status', 'due_date'])
-         .insert(input)
+         const [newToDo]= await knex('todos')
+            .returning(['id', 'title', 'description', 'status', 'due_date'])
+            .insert(input)
+            pubsub.publish("toDoAdded", {
+               todoAdded: newToDo 
+            })
          return newToDo;
       },
       // find todo by id and update todo with included object properties
@@ -133,8 +148,15 @@ const resolvers = {
             .del()
          return deletedToDos;
       }
+   },
+   Subscription: {
+      toDoAdded: {
+         subscribe: () => pubsub.asyncIterator('toDoAdded')
+      }
    }
 };
+
+const app = express();
 
 const server = new ApolloServer({ 
    typeDefs, 
@@ -143,11 +165,15 @@ const server = new ApolloServer({
    playground: true,
    engine: {
       apiKey: process.env.ENGINEKEY
-      }
+   }
 });
+
+const httpServer = createServer(app);
+server.installSubscriptionHandlers(httpServer);
 
 server.applyMiddleware({ app })
 
-app.listen({ port: PORT }, () => {
-  console.log(`Go to http://${HOST}:${PORT}/graphql to run queries!`)
+httpServer.listen({ port: PORT }, () => {
+   console.log(`🚀 Go to http://${HOST}:${PORT}/graphql to run queries!`);
+   console.log(`🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`)
 })

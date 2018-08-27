@@ -17,6 +17,7 @@
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "graphql": "^0.13.2",
+    "graphql-postgres-subscriptions": "^1.0.2",
     "knex": "^0.15.2",
     "pg": "^7.4.3",
     "run.env": "^1.0.2"
